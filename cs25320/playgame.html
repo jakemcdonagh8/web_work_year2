@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+			   
+<html>
+<!-- ^^^^^^^ The beginning of the html file. ^^^^^^^^ -->
+<!-- The head of the document, the name that the user will see upon entering the website. Also links to a style sheet externally -->
+	<head> 
+	  <link href="myCSS.css" type="text/css" rel="stylesheet"/>
+	  <title>The Game</title>
+	</head>
+	<body>
+<!-- The top portion of the site. Uses a div in order to separate it from the rest of the site for the CSS-->
+	  <div id="banner">
+	    <h1>Aster-Risk</h1>
+	  </div>
+	
+      <div id="gamepanel">
+
+<!-- The main part of the site, which consists of two canvases, a background canvas which displays a static background for the game and the game canvas which handles-->
+<!-- All of the game elements. Also contains a buutton that is used in order to start -->
+	  <div id="game">
+	    <p>Please click the button to start the game.</p>
+          <form id="Game Controls">
+              <input type="button" value="Start game" onclick="start_game()">
+          </form>
+	  </div>
+
+     <div id="canvas_layer">
+         <canvas id="game_background_canvas" width="1000" height="600" style="border:1px solid #000000; z-index: 1; position: absolute"></canvas>
+         <canvas id="game_canvas" width="1000" height="600" style="border:1px solid #000000; z-index: 2;"></canvas>
+		 </div>
+		 
+	 
+	  <div id="buttonIndex">
+	    <form action="http://users.aber.ac.uk/jam93/cs25320/index.html">
+		  <input type="submit" value="Index"/>
+	    </form>
+	  </div>
+
+	  
+	  <div id="buttonAbout">
+	    <form action="http://users.aber.ac.uk/jam93/cs25320/about.html">
+		  <input type="submit" value="About"/>
+	    </form>
+	  </div>
+
+
+	  <div id="buttonHelp">
+	    <form action="http://users.aber.ac.uk/jam93/cs25320/help.html">
+		  <input type="submit" value="Help"/>
+	    </form>
+	  </div>
+	  
+	  
+	  
+	  <div id="buttonPlay">
+	    <form action="http://users.aber.ac.uk/jam93/cs25320/playgame.html">
+		  <input type="submit" value="Play Game!"/>
+	    </form>
+	  </div>
+	
+	
+	  <div id="footer">
+	    <p id="date"></p>
+	
+	  </div>
+
+<!-- The JavaScript section, which contains the code that is used to run the game on the two canvases-->
+	  <script>
+	    var date = new Date();
+	    document.getElementById("date").innerHTML = date.toDateString();
+
+<!--Declares the two canveses and contexts globally to be used throughout the entire game-->
+        var background_canvas = document.getElementById("game_background_canvas");
+        var background_context = background_canvas.getContext("2d");
+
+        var main_canvas = document.getElementById("game_canvas");
+        var main_context = main_canvas.getContext("2d");
+
+<!--The set background function is used in order to present the static background to the player once they hit the start game button-->
+<!-- Original author: Jake McDonagh-->
+		function set_background(){
+            var background_image = new Image();
+            background_image.src="images/backgrounds/darkPurple.png";
+
+            var player_life_icon = new Image();
+            player_life_icon.src="images/png/UI/playerLife2_blue.png";
+
+            var ui_x = new Image();
+            ui_x.src="images/png/UI/numeralX.png";
+
+
+
+<!--Displays the space background, as well as the UI for the game-->
+			background_image.onload = function(){
+                var pattern = background_context.createPattern(background_image, 'repeat');
+			    background_context.fillStyle = pattern;
+			    background_context.fillRect(0, 0, background_canvas.width, background_canvas.height);
+			    background_context.drawImage(player_life_icon, 115, 52);
+			    background_context.drawImage(ui_x, 160, 60);
+
+
+                background_context.strokeStyle = "#fcfffe";
+                background_context.font="30px Arial";
+                background_context.strokeText("Score:",20,35);
+                background_context.strokeText(" Lives:",20,75);
+
+			};
+		}
+
+<!--Images used in regards to the player character-->
+        var player_ship_image = new Image();
+        player_ship_image.src = "images/png/playerShip2_blue.png";
+
+        var player_shield = new Image();
+        player_shield.src = "images/png/Effects/shield2.png";
+
+
+        var UI_0 = new Image();
+        UI_0.src = "images/png/UI/numeral0.png";
+        var UI_1 = new Image();
+        UI_1.src = "images/png/UI/numeral1.png";
+        var UI_2 = new Image();
+        UI_2.src = "images/png/UI/numeral2.png";
+        var UI_3 = new Image();
+        UI_3.src = "images/png/UI/numeral3.png";
+
+
+<!-- The bounding box which allows the player to move in a certain area as well as the two mouse events that are used during the game which are activated by clicking and moving the mouse-->
+        var bounding_box = main_canvas.getBoundingClientRect();
+        main_canvas.addEventListener("mousemove", move ,false);
+        main_canvas.addEventListener("click", shoot, false);
+
+<!-- The player object which contains the relevant information about the player such as the player's position/size on the canvas as well as the remaining lives and total score-->
+<!-- Original author: Jake McDonagh, based on the example game "Dropping Bullets" at https://www.aber.ac.uk/~dcswww/Dept/Teaching/CourseNotes/current/CS25320/CS25320_client_side/exercises/basic_game/   -->
+<!-- CHANGES: Changed code so that the player represents a spaceship image rather than a rectangle-->
+<!--		  Added optional keyboard controls along with standard mouse controls-->
+<!--		  Added more variables such as shield and upgrade boolean variable to allow the player to recieve upgrades from powerups-->
+        var player = {
+
+            x: main_canvas.width/2,
+            y: 550,
+            width: 60,
+            height: 40,
+            lives: 3,
+            score: 0,
+            has_upgrade: false,
+            has_shield: false,
+
+
+<!--This function is called during the draw phase of the RequestAnimationFrame loop, where the most recent position of the player as well as their score and remaining lives are drawn onto the canvas-->
+            draw: function() {
+                main_context.drawImage(player_ship_image, this.x, this.y, this.width, this.height);
+                if (player.has_shield == true) {
+                    main_context.drawImage(player_shield, this.x, this.y, this.width, this.height);
+                }
+
+                switch (player.lives) {
+                    case 0:
+                        main_context.drawImage(UI_0, 190, 58);
+                        break;
+                    case 1:
+                        main_context.drawImage(UI_1, 190, 58);
+                        break;
+                    case 2:
+                        main_context.drawImage(UI_2, 190, 58);
+                        break;
+                    case 3:
+                        main_context.drawImage(UI_3, 190, 58);
+                        break;
+                }
+                main_context.strokeStyle = "#fcfffe";
+                main_context.font="30px Arial";
+                main_context.strokeText(parseInt(player.score), 150, 38);
+            }
+        };
+
+
+<!-- Images used for the bullets used within the game-->
+        var player_bullet_image = new Image();
+        player_bullet_image.src = "images/png/Lasers/laserBlue01.png";
+
+        var player_upgraded_bullet = new Image();
+        player_upgraded_bullet.src = "images/png/Lasers/laserBlue16.png"
+
+<!-- The bullet object is stored within an array to allow for more than one bullet to be present on the screen-->
+        var player_bullets = [];
+		
+<!--Information regarding the bullet, such as it's velocity and the size of the bullet-->
+        function Bullet(i) {
+            i.active = true;
+
+            i.xVelocity = 0;
+            i.yVelocity = -i.speed;
+            i.width = 6;
+            i.height = 36;
+
+<!--Checks to see if the bullet is still within the Canvas. Original Author of the code: https://www.html5rocks.com/en/tutorials/canvas/notearsgame/   -->
+<!--CHANGES: Changed the size of the canvas to better reflect the canvas used within my game-->
+            i.inBounds = function () {
+                return i.x >= 0 && i.x <= 1000 &&
+                    i.y >= 0 && i.y <= 600;
+            };
+
+<!--Draws the current position of the bullet with the default bullet image. If the player has picked up a power-up which would upgrade the bullets, then use the upgraded bullet image-->			
+            i.draw = function () {
+                if (player.has_upgrade == true) {
+                    main_context.drawImage(player_upgraded_bullet, this.x, this.y, this.width + 12, this.height + 15);
+                } else {
+                    main_context.drawImage(player_bullet_image, this.x, this.y, this.width, this.height);
+                }
+            };
+
+<!--Updates the position of the bullet on the canvas. Original Author of the code: https://www.html5rocks.com/en/tutorials/canvas/notearsgame/   -->		
+            i.update = function () {
+                i.x += i.xVelocity;
+                i.y += i.yVelocity;
+
+                i.active = i.active && i.inBounds();
+            };
+            return i;
+        };
+
+
+<!-- The images used for the asteroids for the game-->
+        var asteroid_1 = new Image();
+        asteroid_1.src = "images/png/Meteors/meteorBrown_tiny2.png";
+        var asteroid_2 = new Image();
+        asteroid_2.src = "images/png/Meteors/meteorBrown_tiny1.png";
+        var asteroid_3 = new Image();
+        asteroid_3.src = "images/png/Meteors/meteorBrown_small2.png";
+        var asteroid_4 = new Image();
+        asteroid_4.src = "images/png/Meteors/meteorBrown_small1.png";
+        var asteroid_5 = new Image();
+        asteroid_5.src = "images/png/Meteors/meteorBrown_med2.png";
+        var asteroid_6 = new Image();
+        asteroid_6.src = "images/png/Meteors/meteorBrown_med1.png";
+        var asteroid_7 = new Image();
+        asteroid_7.src = "images/png/Meteors/meteorBrown_big4.png";
+        var asteroid_8 = new Image();
+        asteroid_8.src = "images/png/Meteors/meteorBrown_big3.png";
+
+		
+<!--The array for the asteroid objects, in order to allow more than one asteroid to appear on the screen at a time-->		
+        var enemies = [];
+
+<!--Information regarding the asteroids, such as the speed at which their travel as well as the position that they hold on the canvas-->
+<!--Original Author of the code: https://www.html5rocks.com/en/tutorials/canvas/notearsgame/   -->
+<!--CHANGES: Changed the overall velocity of the asteroids to allow them to travel at different speeds-->
+<!--		 Changed structure of the code so that there can be different types of asteroids with varying sizes and behaviours-->
+<!--		 Added new variables, such as asteroid type and power-up drop chance which allows the asteroids to appear in varying sizes and be able to drop items for the player once destroyed-->
+<!--		 Added assign size function, which assigns different sizes to each asteroid object-->
+<!--		 Updated .draw, .update and .explode methods to better implement the above changes and additions-->
+<!--		 Updated .draw, .update and .explode methods to be more suitable for the game overall-->		
+        function Enemy(i) {
+            i = i || {};
+
+            i.active = true;
+            i.age = Math.floor(Math.random() * 128);
+
+            i.x = 1000 / 4 + Math.random() * 1000 / 2;
+            i.y = 0;
+            i.xVelocity = 0;
+            i.yVelocity = Math.random() * 3;
+
+            i.width;
+            i.height;
+
+            i.asteroid_type = Math.floor((Math.random() * 8) + 1);
+
+            i.powerup_drop_chance = Math.floor((Math.random() * 20) + 1);
+
+            i.assign_size = function() {
+               if (i.asteroid_type == 1) {
+                   i.width = 16;
+                   i.height = 15;
+               }
+               else if (i.asteroid_type == 2) {
+                   i.width = 18;
+                   i.height = 18;
+               }
+               else if (i.asteroid_type == 3) {
+                   i.width = 29;
+                   i.height = 26;
+               }
+               else if (i.asteroid_type == 4) {
+                   i.width = 28;
+                   i.height = 28;
+               }
+               else if (i.asteroid_type == 5) {
+                   i.width = 45;
+                   i.height = 40;
+               }
+               else if (i.asteroid_type == 6) {
+                   i.width = 43;
+                   i.height = 43;
+               }
+               else if (i.asteroid_type == 7) {
+                   i.width = 98;
+                   i.height = 96;
+               }
+               else if (i.asteroid_type == 8) {
+                   i.width = 89;
+                   i.height = 92;
+               }
+
+            };
+
+            i.inBounds = function() {
+                return i.x >= 0 && i.x <= 1000 &&
+                    i.y >= 0 && i.y <= 600;
+            };
+
+<!--Gives the size of each asteroid and uses the appropriate asteroid image respectively-->			
+            i.draw = function() {
+                i.assign_size();
+
+                if (i.asteroid_type == 1) {
+                    main_context.drawImage(asteroid_1, this.x, this.y, this.width, this.height);
+                }
+                else if (i.asteroid_type == 2) {
+                    main_context.drawImage(asteroid_2, this.x, this.y, this.width, this.height);
+                }
+                else if (i.asteroid_type == 3) {
+                    main_context.drawImage(asteroid_3, this.x, this.y, this.width, this.height);
+                }
+                else if (i.asteroid_type == 4) {
+                    main_context.drawImage(asteroid_4, this.x, this.y, this.width, this.height);
+                }
+                else if (i.asteroid_type == 5) {
+                    main_context.drawImage(asteroid_5, this.x, this.y, this.width, this.height);
+                }
+                else if (i.asteroid_type == 6) {
+                    main_context.drawImage(asteroid_6, this.x, this.y, this.width, this.height);
+                }
+                else if (i.asteroid_type == 7) {
+                    main_context.drawImage(asteroid_7, this.x, this.y, this.width, this.height);
+                }
+                else if (i.asteroid_type == 8) {
+                    main_context.drawImage(asteroid_8, this.x, this.y, this.width, this.height);
+                }
+            };
+
+<!--Update the velocity of the aseroid and its current status-->			
+            i.update = function() {
+                i.x += i.xVelocity;
+                i.y += i.yVelocity;
+
+                i.xVelocity = 3 * Math.sin(i.age * Math.PI / 64);
+
+                i.age++;
+
+                i.active = i.active && i.inBounds();
+            };
+
+<!--If the asteroid contained a power-up, spawn the power-up on the canvas. Give the player 10 points. This is called if the bullet hits the asteroid-->			
+            i.explode = function() {
+			var explosion = new Audio("images/bonus/sfx_zap.ogg");
+			explosion.play();
+
+                if (i.powerup_drop_chance == 1) {
+                    powerups.push(Powerup());
+
+                }
+
+                this.active = false;
+                player.score += 10;
+            };
+
+<!--Called if the asteroid hits the player-->			
+			i.collide = function() {
+			var collide_sound = new Audio("images/bonus/sfx_twoTone.ogg");
+			
+				if (player.lives > 0) {
+					collide_sound.play();
+				}	
+				if (i.powerup_drop_chance < 6) {
+					powerups.push(Powerup());					
+				}
+				this.active = false;
+			};
+
+<!--Removes the asteroids from the game upon a game over, to ensure that if the player plays again all of the asteroids are gone-->			
+			i.remove = function() {
+			this.active = false;
+			}
+
+            return i;
+        };
+
+<!--Images used for the individual power-ups used within the game-->		
+        var powerup_upgrade = new Image();
+        powerup_upgrade.src = "images/png/Powerups/powerupBlue_bolt.png";
+
+        var powerup_shield = new Image();
+        powerup_shield.src = "images/png/Powerups/powerupBlue_shield.png"
+
+        var powerup_score = new Image();
+        powerup_score.src = "images/png/Powerups/powerupBlue_star.png"
+
+<!--The power-up array which stores the power-up objects. Allows for multiple power-ups to appear on the screen-->		
+        var powerups = [];
+
+<!--Information regarding the power-ups, such as the type of power-up, the velocity they travel at etc-->
+<!--Original author: Jake McDonagh (Created using the general enemy object template at https://www.html5rocks.com/en/tutorials/canvas/notearsgame/)  -->		
+        function Powerup(i) {
+            i = i || {};
+
+            i.active = true;
+            i.age = Math.floor(Math.random() * 128);
+
+            i.x = 1000 / 4 + Math.random() * 1000 / 2;
+            i.y = 0;
+            i.xVelocity = 0;
+            i.yVelocity = 2;
+
+            i.width = 34;
+            i.height = 33;
+
+            i.type = Math.floor((Math.random() * 3) + 1);
+
+            i.inBounds = function() {
+                return i.x >= 0 && i.x <= 1000 &&
+                    i.y >= 0 && i.y <= 600;
+            };
+
+<!--Depending on the power-up dropped, spawns the appropriate power-up-->			
+            i.draw = function() {
+
+
+                if (i.type == 1) {
+                    main_context.drawImage(powerup_upgrade, this.x, this.y, this.width, this.height);
+                }
+                else if (i.type == 2) {
+                    main_context.drawImage(powerup_shield, this.x, this.y, this.width, this.height);
+                }
+                else if (i.type == 3) {
+                    main_context.drawImage(powerup_score, this.x, this.y, this.width, this.height);
+                }
+            };
+
+<!--Updates the position of the power-up-->			
+            i.update = function() {
+                i.x += i.xVelocity;
+                i.y += i.yVelocity;
+
+                i.xVelocity = 0;
+
+                i.age++;
+
+                i.active = i.active && i.inBounds();
+            };
+
+<!--When the power-up has contact with the player, give the player an advantage that is dependant on the power-up-->			
+            i.explode = function() {
+                switch (i.type) {
+				<!--Upgrade gun-->
+                    case 1:
+                        if (player.has_upgrade == true) {
+                            player.score += 100; <!--Player recieves bonus points if gun is already upgraded-->
+                        } else {
+                            player.has_upgrade = true;
+                        }
+                        break;
+				<!--Give shield-->		
+                    case 2:
+                        if (player.has_shield == true) {
+                            player.score += 100; <!--Player recieves bonus points if player already has shield-->
+                        } else {
+                            player.has_shield = true;
+							var shield_up = new Audio("images/bonus/sfx_shieldUp.ogg");
+							shield_up.play();
+                        }
+                        break;
+				<!--Bonus points-->		
+                    case 3:
+                        player.score += 250;
+                        break;
+                }
+                this.active = false;
+            };
+			
+			i.remove = function() {
+			this.active = false;
+			}
+			
+            return i;
+        };
+
+<!--The following code below handles the collisions that frequently happen throughout the game. Original author of the code: https://www.html5rocks.com/en/tutorials/canvas/notearsgame/   -->
+<!--CHANGES: Added statements to check to see whether or not a powerup has collided with a player-->
+<!--		 Updated the .explode functions of each object to better reflect the purposes that are needed within the game-->		
+        function collision(p, q) {
+            return p.x < q.x + q.width && p.x + p.width > q.x && p.y < q.y + q.height && p.y + p.height > q.y;
+        }
+
+        function handle_collisions() {
+            player_bullets.forEach(function(bullet) {
+                enemies.forEach(function(enemy) {
+                    if (collision(bullet, enemy)) {
+                        enemy.explode();
+                        bullet.active = false;
+                    }
+                });
+            });
+
+            enemies.forEach(function(enemy) {
+                if (collision(enemy, player)) {
+					player.explode();
+                    enemy.collide();                 
+                }
+            });
+
+            powerups.forEach(function(powerup) {
+                if (collision(powerup, player)) {
+                    powerup.explode();
+                }
+            });
+        }
+
+
+<!--When the start game button is clicked, it calls this function, which sets the background, resets the life counter to 3, clears all bullets and enemies (incase of a game over) and beging the animation frame-->	
+<!--Original author: Jake McDonagh-->	
+		function start_game() {
+            set_background();
+            player.lives = 3;
+			player.score = 0;
+
+		    requestAnimationFrame(game_loop);
+        }
+
+<!--The following two functions move the player ship along with the mouse and shoots the laser upon click-->
+<!--Original author; Jake McDonagh-->		
+        function move (e) {
+            player.x = (e.clientX-bounding_box.left) *
+                (main_canvas.width/bounding_box.width);
+        }
+        function shoot(e) {
+            player.shoot();	
+		}
+<!--The following block of code is the keyboard controls for the game. Left and Right arrow keys to move with the spacebar to shoot-->
+<!--Original author: Jake McDonagh-->		
+        document.onkeydown = function (event) {
+
+            var keyCode = event.keyCode;
+            event.preventDefault();
+
+            if (keyCode == 37) {
+                if (player.x > 49) {
+                    player.x -= 12;
+                }
+            }
+            else if (keyCode == 39) {
+                if (player.x < 928) {
+                    player.x += 12;
+                }
+            }
+            else if(keyCode == 32) {
+                player.shoot();
+
+            }
+        };
+
+
+<!--Updates the positions and velocities of enemies and powerups on the canvas. Also calls the handle collisions method at the end to ensure that collisions are handled effectively--->
+<!--Original author of the code: https://www.html5rocks.com/en/tutorials/canvas/notearsgame/   -->
+<!--CHANGES: Ensures that different types of bullets, asteroids and power-ups are also updated along with the enemies->
+<!--		 Adjusted values to ensure that enemies are spawning at different rates to the original game-->		
+        function update_everything() {
+            player_bullets.forEach(function(bullet) {
+                bullet.update();
+            });
+
+            player_bullets = player_bullets.filter(function(bullet) {
+                return bullet.active;
+            });
+
+            enemies.forEach(function(enemy) {
+                enemy.update();
+            });
+
+            enemies = enemies.filter(function(enemy) {
+                return enemy.active;
+            });
+
+            powerups.forEach(function(powerup) {
+                powerup.update();
+            });
+
+            powerups = powerups.filter(function(powerup) {
+                return powerup.active;
+            });
+
+            if(Math.random() < 0.02) {
+                enemies.push(Enemy());
+            }
+            handle_collisions();
+        };
+
+        window.setTimeout(player.shoot, 2000);
+
+<!--Ensures that when the player shoots, a bullet image is created on the canvas-->
+<!--Original author of the code: https://www.html5rocks.com/en/tutorials/canvas/notearsgame/   -->
+<!--CHANGES: Changed the overall velocity of the bullet-->
+<!--		 Added the possibility of the player firing upgraded bullets along with the default bullet-->		
+        player.shoot = function() {
+            var bullet_position = this.midpoint();
+
+            if (player.has_upgrade == true) {
+				var shoot_soundupgrade = new Audio("images/bonus/sfx_laser2.ogg");
+				shoot_soundupgrade.play();
+                player_bullets.push(Bullet({
+                    speed: 10,
+                    x: bullet_position.x,
+                    y: bullet_position.y
+                }));
+            } else {
+				var shoot_sound = new Audio("images/bonus/sfx_laser1.ogg");
+				shoot_sound.play();
+                player_bullets.push(Bullet({
+                    speed: 5,
+                    x: bullet_position.x,
+                    y: bullet_position.y
+                }));
+            }
+        };
+
+        player.midpoint = function() {
+            return {
+                x: this.x + this.width/2,
+                y: this.y + this.height/2
+            };
+        };
+
+<!--If a player has a shield and hits an asteroid, then the player loses the shield, otherwise, the player loses a life-->
+<!--The player loses the upgraded bullets regardless of shield-->
+<!--Original author: Jake McDonagh-->		
+        player.explode = function() {
+            if (player.has_shield == true) {
+                player.has_shield = false;
+                player.has_upgrade = false;
+				
+				var shield_down = new Audio("images/bonus/sfx_shieldDown.ogg");
+				shield_down.play();
+            }
+            else {
+                player.lives -= 1;
+                player.has_upgrade = false;
+            }
+        };
+
+<!--Clears the canvas and redraws all of the images back on with their updated positions, statuses and velocities-->
+        function draw_everything() {
+            main_context.clearRect(0, 0, 1000, 800);
+            player.draw();
+
+            player_bullets.forEach(function(bullet) {
+                bullet.draw();
+            });
+
+            enemies.forEach(function(enemy) {
+                enemy.draw();
+            });
+
+            powerups.forEach(function(powerup) {
+                powerup.draw();
+            });      
+        }
+
+<!--The standard game loop, which continuously updates and draws the velocities and positions of the images on the canvas-->
+<!--This continues until the player runs out of lives, which will result in a game over screen-->		
+		function game_loop() {
+
+            update_everything();
+		    draw_everything();
+
+           if (player.lives > 0) {
+               requestAnimationFrame(game_loop);
+           }
+           else if (player.lives == 0) {
+               game_over();
+           }
+        }
+		
+<!--If the player runs out of lives, stop the game and display a game over message. Also clears every object from the game to ensure that the canvas is empty for the next game-->
+        function game_over() {
+			var lose_sound = new Audio("images/bonus/sfx_lose.ogg");
+			lose_sound.play();
+			
+			   player_bullets.forEach(function(bullet) {
+                bullet.active = false;
+            });
+
+            enemies.forEach(function(enemy) {
+                enemy.remove();
+            });
+			
+			powerups.forEach(function(powerup) {
+				powerup.remove();
+			});
+			
+            background_context.strokeStyle = "#fcfffe";
+            background_context.font="80px Arial";
+            background_context.strokeText("GAME OVER",250,240);
+        }
+	  </script>
+	</body>
+</html>

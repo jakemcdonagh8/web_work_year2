@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+			   
+<html>	
+<!-- ^^^^^^^ The beginning of the html file. ^^^^^^^^ -->			   
+<!-- The head of the document, the name that the user will see upon entering the website. Also links to a style sheet externally -->
+	<head> 
+	  <link href="myCSS.css" type="text/css" rel="stylesheet"/>
+	  <title>About Invader Sim</title>
+	</head>
+
+	<body>
+<!-- The top portion of the site. Uses a div in order to separate it from the rest of the site for the CSS-->
+	  <div id="banner">
+	    <h1>Introduction and Controls</h1>
+	  </div>
+	
+<!-- The main part of the index. Contains buttons which will take the user to other parts of the site. Also briefly talks about the game and it's controls-->
+	  <div id="main">
+	    <p>The main goal of Aster-Risk is to survive and use your lasers in order to destroy the 
+		oncoming asteroids in order to score points. Througout the game, several types of power-ups 
+		will spawn which will help you blast your way through the debris!</p>
+		<p>CONTROLS</p>
+		
+		<p>Move the mouse to move the ship. Clicking will result in the ship firing a laser. 
+		Arrows keys and spacebar may also be used for keyboard controls, but mouse controls are heavily preferred.</p>
+		
+		<img id="bolt" src="images/helpimage.png" height="500" width="700">
+	
+	  </div>
+	
+	  <div id="buttonIndex">
+	    <form action="http://users.aber.ac.uk/jam93/cs25320/index.html">
+		  <input type="submit" value="Index"/>
+	    </form>
+	  </div>
+	  
+	  
+	  <div id="buttonAbout">
+	    <form action="http://users.aber.ac.uk/jam93/cs25320/about.html">
+		  <input type="submit" value="About"/>
+	    </form>
+	  </div>
+	  
+		
+	  <div id="buttonHelp">
+	    <form action="http://users.aber.ac.uk/jam93/cs25320/help.html">
+		  <input type="submit" value="Help"/>
+	    </form>
+	  </div>
+	  
+	  
+	  
+	  <div id="buttonPlay">
+	    <form action="http://users.aber.ac.uk/jam93/cs25320/playgame.html">
+		  <input type="submit" value="Play Game!"/>
+	    </form>
+	  </div?>
+	
+<!--The footer, which uses JavaScript to display the current date-->
+	  <div id="footer">
+	    <p id="date"></p>
+	
+	  </div>
+	  <script>
+	    var date = new Date();
+	    document.getElementById("date").innerHTML = date.toDateString();
+	  </script>
+	</body>
+ 
+</html>

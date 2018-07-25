@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+
+<html>		   
+
+<!-- ^^^^^^^ The beginning of the html file. ^^^^^^^^ -->			   
+<!-- The head of the document, the name that the user will see upon entering the website. Also links to a style sheet externally -->
+  <head>
+	<link href="myCSS.css" type="text/css" rel="stylesheet"/>
+	<title>Aster-Risk - Jake McDonagh's CS25320 Assignment</title>
+  </head>
+  <body>
+  
+<!-- The top portion of the site. Uses a div in order to separate it from the rest of the site for the CSS-->
+    <div id="banner">
+	  <h1>Invader Sim Index Page</h1> <!-- The main title of the site -->
+	</div>
+		
+<!-- The main part of the index. Contains buttons which will take the user to other parts of the site-->	
+	<div id="main">
+	  <h1>Please select one of the following buttons below!</h1>
+	  
+
+	  <form action="http://users.aber.ac.uk/jam93/cs25320/about.html">
+		<input type="submit" value="About"/>
+	  </form>
+	  
+	  <br />
+	  
+	  <form action="http://users.aber.ac.uk/jam93/cs25320/help.html">
+		<input type="submit" value="Help"/>
+	  </form>
+	  
+	  <br />
+	  
+	  <form action="http://users.aber.ac.uk/jam93/cs25320/playgame.html">
+		<input type="submit" value="Play Game!"/>
+	  </form>
+	</div>
+	
+<!--The footer, which uses JavaScript to display the current date-->
+	<div id="footer">
+	  <p id="date"></p>
+	
+	</div>
+	<script>
+	  var date = new Date();
+	  document.getElementById("date").innerHTML = date.toDateString();
+	</script>
+	
+	</body>
+</html>

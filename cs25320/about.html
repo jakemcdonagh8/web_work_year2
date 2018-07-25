@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+			   
+<html>	
+<!-- ^^^^^^^ The beginning of the html file. ^^^^^^^^ -->			   
+<!-- The head of the document, the name that the user will see upon entering the website. Also links to a style sheet externally -->
+	<head> 
+	  <link href="myCSS.css" type="text/css" rel="stylesheet"/>
+	  <title>About the Assigment</title>
+	</head>
+
+	<body>
+<!-- The top portion of the site. Uses a div in order to separate it from the rest of the site for the CSS-->
+	  <div id="banner">
+	    <h1>About</h1>
+	  </div>
+	
+<!-- The main part of the index. Contains buttons which will take the user to other parts of the site. This part also gives credit to public images, sounds and snippets of code used-->
+<!-- Also gives references to articles that I read which helped me understand material needed in order to complete the assignment-->
+	  <div id="main">
+	    <h2>Credits and References</h2>
+		  <p>Credit goes to Daniel X.Moore for the code which allows the game to spawn bullets and enemies: <a href ="https://www.html5rocks.com/en/tutorials/canvas/notearsgame/">Code can be found here.</a></p>
+		  <p>Credit goes to Edel Mary Sheratt for the code that allows the ship to move: <a href ="https://www.aber.ac.uk/~dcswww/Dept/Teaching/CourseNotes/current/CS25320/CS25320_client_side/exercises/basic_game/">Code can be found here.</a></p>
+		  <p>Credit goes to Kenny for the images and sounds used within the game: <a href ="http://opengameart.org/content/space-shooter-redux">Image and Sound files can be found here.</a></p>
+		  <p><a href ="www.kenney.nl">Official Site can be found here</a></p>
+		  <br>
+		  <h2>Other References</h2>
+		  <p><a href ="https://envato.com/blog/building-your-first-html5-game/">https://envato.com/blog/building-your-first-html5-game/</a></p>
+		  <p><a href ="https://www.kirupa.com/html5/animating_with_requestAnimationFrame.htm">https://www.kirupa.com/html5/animating_with_requestAnimationFrame.htm/</a></p>
+
+
+	  </div>
+	
+	  <div id="buttonIndex">
+	    <form action="http://users.aber.ac.uk/jam93/cs25320/index.html">
+		  <input type="submit" value="Index"/>
+	    </form>
+	  </div>
+	  
+	  
+	  <div id="buttonAbout">
+	    <form action="http://users.aber.ac.uk/jam93/cs25320/about.html">
+		  <input type="submit" value="About"/>
+	    </form>
+	  </div>
+	  
+		
+	  <div id="buttonHelp">
+	    <form action="http://users.aber.ac.uk/jam93/cs25320/help.html">
+		  <input type="submit" value="Help"/>
+	    </form>
+	  </div>
+	  
+	  
+	  
+	  <div id="buttonPlay">
+	    <form action="http://users.aber.ac.uk/jam93/cs25320/playgame.html">
+		  <input type="submit" value="Play Game!"/>
+	    </form>
+	  </div>
+	
+<!--The footer, which uses JavaScript to display the current date-->	
+	  <div id="footer">
+	    <p id="date"></p>
+	
+	  </div>
+	  <script>
+	    var date = new Date();
+	    document.getElementById("date").innerHTML = date.toDateString();
+	  </script>
+	</body>
+ 
+</html>
